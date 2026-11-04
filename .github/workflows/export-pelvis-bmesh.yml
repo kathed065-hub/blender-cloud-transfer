@@ -1,4 +1,4 @@
-name: Export pelvis bridge renders
+name: Export pelvis segment A
 on:
   push:
     paths:
@@ -13,24 +13,12 @@ jobs:
           python - <<'PY'
           import urllib.request
           base="https://blender-api-production.up.railway.app/models/8be67f4c0dd512a4132993698146a687/files/renders_v002/"
-          names=[
-            "pelvis_bridge_before_front.png",
-            "pelvis_bridge_before_threequarter.png",
-            "pelvis_bridge_mid_front.png",
-            "pelvis_bridge_mid_threequarter.png",
-            "pelvis_bridge_high_front.png",
-            "pelvis_bridge_high_threequarter.png",
-          ]
-          for n in names:
+          for n in ["pelvis_segment_A_v1_front.png","pelvis_segment_A_v1_threequarter.png"]:
               urllib.request.urlretrieve(base+n,n)
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: pelvis-bridge-renders
+          name: pelvis-segment-A
           path: |
-            pelvis_bridge_before_front.png
-            pelvis_bridge_before_threequarter.png
-            pelvis_bridge_mid_front.png
-            pelvis_bridge_mid_threequarter.png
-            pelvis_bridge_high_front.png
-            pelvis_bridge_high_threequarter.png
+            pelvis_segment_A_v1_front.png
+            pelvis_segment_A_v1_threequarter.png
