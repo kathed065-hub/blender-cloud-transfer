@@ -1,0 +1,26 @@
+name: Import Meshy head
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/import-meshy-head.yml"
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download generated head
+        run: |
+          curl -fL "$MESHY_URL" -o meshy_head.glb
+        env:
+          MESHY_URL: "https://assets.meshy.ai/9e923f6c-d8c7-44ac-8a0f-da4d6d4abee0/tasks/01a1a54a-6f18-7778-a93f-7cdb77ecd5d6/output/model.glb?Expires=1793923200&Signature=B4mXhaqzNu6Tby7pUaNqYlpv~QmxQS~Lj1SnEUNZdk9kU-n-jmEbcTqKz~5byUrEjLCmiz6oThTSPVwWC1-fDM34DkbmSTii~0s9fR21Ch5yQt4gw6EIMr-3INjEY4hslJKQK1HzvA6zuwAbtawUHAXyuR9eCJD26dxac27aIr8RMnzJEG1ig4WPNMiIwZNOYz1Jbc0x2Vtx7EEPrDfbHC67mt~Kcz6hQgC8PahkxhY58pMFwa2yFFif4ItezhXjL79C2jg80F2S0GHZF7eNvFDBWy~4R5xotZlK9HupKlC7Sx1rsM~JB4k4mR-NOESbXbyoZdBfZ2QgnyNORTWt2w__&Key-Pair-Id=K1VGYTHIYLM9UM"
+      - name: Commit generated head
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add meshy_head.glb
+          git commit -m "Add generated Meshy anime head" || exit 0
+          git push
