@@ -1,4 +1,4 @@
-name: Export pelvis bmesh renders
+name: Export pelvis bmesh v2 renders
 on:
   push:
     paths:
@@ -13,12 +13,20 @@ jobs:
           python - <<'PY'
           import urllib.request
           base="https://blender-api-production.up.railway.app/models/8be67f4c0dd512a4132993698146a687/files/renders_v002/"
-          urllib.request.urlretrieve(base+"pelvis_bmesh_left_front.png","pelvis_bmesh_left_front.png")
-          urllib.request.urlretrieve(base+"pelvis_bmesh_left_threequarter.png","pelvis_bmesh_left_threequarter.png")
+          names=[
+            "pelvis_bmesh_v2_before_front.png",
+            "pelvis_bmesh_v2_before_threequarter.png",
+            "pelvis_bmesh_v2_after_front.png",
+            "pelvis_bmesh_v2_after_threequarter.png",
+          ]
+          for n in names:
+              urllib.request.urlretrieve(base+n,n)
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: pelvis-bmesh-renders
+          name: pelvis-bmesh-v2-renders
           path: |
-            pelvis_bmesh_left_front.png
-            pelvis_bmesh_left_threequarter.png
+            pelvis_bmesh_v2_before_front.png
+            pelvis_bmesh_v2_before_threequarter.png
+            pelvis_bmesh_v2_after_front.png
+            pelvis_bmesh_v2_after_threequarter.png
