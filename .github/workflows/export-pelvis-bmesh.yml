@@ -1,0 +1,24 @@
+name: Export pelvis bmesh renders
+on:
+  push:
+    paths:
+      - ".github/workflows/export-pelvis-bmesh.yml"
+  workflow_dispatch:
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download renders
+        run: |
+          python - <<'PY'
+          import urllib.request
+          base="https://blender-api-production.up.railway.app/models/8be67f4c0dd512a4132993698146a687/files/renders_v002/"
+          urllib.request.urlretrieve(base+"pelvis_bmesh_left_front.png","pelvis_bmesh_left_front.png")
+          urllib.request.urlretrieve(base+"pelvis_bmesh_left_threequarter.png","pelvis_bmesh_left_threequarter.png")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pelvis-bmesh-renders
+          path: |
+            pelvis_bmesh_left_front.png
+            pelvis_bmesh_left_threequarter.png
