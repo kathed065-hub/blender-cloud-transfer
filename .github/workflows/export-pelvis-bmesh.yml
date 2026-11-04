@@ -1,4 +1,4 @@
-name: Export pelvis smoothY renders
+name: Export pelvis laplacian renders
 on:
   push:
     paths:
@@ -14,27 +14,23 @@ jobs:
           import urllib.request
           base="https://blender-api-production.up.railway.app/models/8be67f4c0dd512a4132993698146a687/files/renders_v002/"
           names=[
-            "pelvis_smoothY_before_front.png",
-            "pelvis_smoothY_before_threequarter.png",
-            "pelvis_smoothY_soft_front.png",
-            "pelvis_smoothY_soft_threequarter.png",
-            "pelvis_smoothY_medium_front.png",
-            "pelvis_smoothY_medium_threequarter.png",
-            "pelvis_smoothY_strong_front.png",
-            "pelvis_smoothY_strong_threequarter.png",
+            "pelvis_lap_before_front.png",
+            "pelvis_lap_before_threequarter.png",
+            "pelvis_lap_gentle_front.png",
+            "pelvis_lap_gentle_threequarter.png",
+            "pelvis_lap_firm_front.png",
+            "pelvis_lap_firm_threequarter.png",
           ]
           for n in names:
               urllib.request.urlretrieve(base+n,n)
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: pelvis-smoothY-renders
+          name: pelvis-laplacian-renders
           path: |
-            pelvis_smoothY_before_front.png
-            pelvis_smoothY_before_threequarter.png
-            pelvis_smoothY_soft_front.png
-            pelvis_smoothY_soft_threequarter.png
-            pelvis_smoothY_medium_front.png
-            pelvis_smoothY_medium_threequarter.png
-            pelvis_smoothY_strong_front.png
-            pelvis_smoothY_strong_threequarter.png
+            pelvis_lap_before_front.png
+            pelvis_lap_before_threequarter.png
+            pelvis_lap_gentle_front.png
+            pelvis_lap_gentle_threequarter.png
+            pelvis_lap_firm_front.png
+            pelvis_lap_firm_threequarter.png
