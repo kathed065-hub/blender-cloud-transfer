@@ -1,0 +1,19 @@
+name: Package Blender 4.2.23 Linux
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/package-blender-4-2.yml"
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Blender 4.2.23
+        run: |
+          curl -fL "https://download.blender.org/release/Blender4.2/blender-4.2.23-linux-x64.tar.xz" -o blender-4.2.23-linux-x64.tar.xz
+          sha256sum blender-4.2.23-linux-x64.tar.xz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blender-4.2.23-linux-x64
+          path: blender-4.2.23-linux-x64.tar.xz
+          compression-level: 0
