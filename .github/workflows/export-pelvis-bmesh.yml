@@ -1,4 +1,4 @@
-name: Export pelvis laplacian renders
+name: Export pelvis firm2 renders
 on:
   push:
     paths:
@@ -14,23 +14,19 @@ jobs:
           import urllib.request
           base="https://blender-api-production.up.railway.app/models/8be67f4c0dd512a4132993698146a687/files/renders_v002/"
           names=[
-            "pelvis_lap_before_front.png",
-            "pelvis_lap_before_threequarter.png",
-            "pelvis_lap_gentle_front.png",
-            "pelvis_lap_gentle_threequarter.png",
             "pelvis_lap_firm_front.png",
             "pelvis_lap_firm_threequarter.png",
+            "pelvis_lap_firm2_front.png",
+            "pelvis_lap_firm2_threequarter.png",
           ]
           for n in names:
               urllib.request.urlretrieve(base+n,n)
           PY
       - uses: actions/upload-artifact@v4
         with:
-          name: pelvis-laplacian-renders
+          name: pelvis-firm2-renders
           path: |
-            pelvis_lap_before_front.png
-            pelvis_lap_before_threequarter.png
-            pelvis_lap_gentle_front.png
-            pelvis_lap_gentle_threequarter.png
             pelvis_lap_firm_front.png
             pelvis_lap_firm_threequarter.png
+            pelvis_lap_firm2_front.png
+            pelvis_lap_firm2_threequarter.png
