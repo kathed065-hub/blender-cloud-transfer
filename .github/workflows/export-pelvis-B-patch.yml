@@ -1,0 +1,20 @@
+name: Export pelvis B patch
+on:
+  push:
+    paths:
+      - ".github/workflows/export-pelvis-B-patch.yml"
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          python - <<'PY'
+          import urllib.request
+          b="https://blender-api-production.up.railway.app/models/8be67f4c0dd512a4132993698146a687/files/renders_v002/"
+          for n in ["pelvis_segB_patch_v1_front.png","pelvis_segB_patch_v1_threequarter.png"]:
+              urllib.request.urlretrieve(b+n,n)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pelvis-B-patch
+          path: "*.png"
