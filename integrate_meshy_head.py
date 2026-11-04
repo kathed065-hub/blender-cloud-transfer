@@ -1,70 +1,60 @@
 import bpy,math,json
 from pathlib import Path
 from mathutils import Vector
-
-MID="8be67f4c0dd512a4132993698146a687"
-D=Path("/data/models")/MID
-SRC=D/"pelvis_laplacian_left_firm.glb"
-OUT=D/"pelvis_laplacian_left_firm2.glb"
-R=D/"renders_v002"; R.mkdir(parents=True,exist_ok=True)
-
-bpy.ops.wm.read_factory_settings(use_empty=True)
-bpy.ops.import_scene.gltf(filepath=str(SRC))
-objs=[o for o in bpy.context.scene.objects if o.type=="MESH"]
-body=max(objs,key=lambda o:len(o.data.polygons))
-pts=[o.matrix_world@Vector(c) for o in objs for c in o.bound_box]
-mn=Vector((min(p.x for p in pts),min(p.y for p in pts),min(p.z for p in pts)))
-mx=Vector((max(p.x for p in pts),max(p.y for p in pts),max(p.z for p in pts)))
-H=mx.z-mn.z; cy=(mn.y+mx.y)/2
-
-vg=body.vertex_groups.new(name="UPPER_LEFT_SEAM")
-count=0
-for v in body.data.vertices:
-    w=body.matrix_world@v.co
-    curve=.540+.684*abs(w.x)
-    d=abs(w.z-curve)
-    if not (-.110<w.x<-.005 and .530<w.z<.617 and w.y<cy): continue
-    front=max(0.0,min(1.0,(cy-w.y)/(H*.070)))
-    weight=math.exp(-0.5*(d/.011)**2)*front
-    if weight>.015:
-        vg.add([v.index],min(1.0,weight),"REPLACE"); count+=1
-
-mod=body.modifiers.new("UPPER_LEFT_LAP","LAPLACIANSMOOTH")
-mod.vertex_group=vg.name
-mod.lambda_factor=.30
-mod.iterations=8
-mod.use_volume_preserve=True
-mod.use_x=True; mod.use_y=True; mod.use_z=True
-bpy.context.view_layer.objects.active=body; body.select_set(True)
-bpy.ops.object.modifier_apply(modifier=mod.name)
-for p in body.data.polygons:p.use_smooth=True
-
-bpy.ops.object.select_all(action="SELECT")
-bpy.ops.export_scene.gltf(filepath=str(OUT),export_format="GLB",export_apply=True)
-
-sc=bpy.context.scene; sc.render.engine="CYCLES"; sc.cycles.device="CPU"; sc.cycles.samples=3
-sc.render.resolution_x=700; sc.render.resolution_y=700; sc.render.resolution_percentage=100
-sc.render.image_settings.file_format="PNG"; sc.render.film_transparent=False
-if sc.world is None: sc.world=bpy.data.worlds.new("World")
-sc.world.use_nodes=True
-bg=sc.world.node_tree.nodes.get("Background"); bg.inputs["Color"].default_value=(.018,.022,.030,1); bg.inputs["Strength"].default_value=.06
-try: sc.view_settings.look="AgX - Medium High Contrast"
-except: pass
-sc.view_settings.exposure=-.6
-mat=bpy.data.materials.new("DiagClay"); mat.use_nodes=True
-bs=mat.node_tree.nodes.get("Principled BSDF"); bs.inputs["Base Color"].default_value=(.28,.31,.36,1); bs.inputs["Roughness"].default_value=.78
-sc.view_layers["ViewLayer"].material_override=mat
-camd=bpy.data.cameras.new("Cam"); cam=bpy.data.objects.new("Cam",camd); sc.collection.objects.link(cam); sc.camera=cam
-camd.type="ORTHO"; camd.ortho_scale=H*.29
-target=Vector((0,cy,mn.z+H*.57))
-def look(o,t): o.rotation_euler=(t-o.location).to_track_quat("-Z","Y").to_euler()
-for i,(loc,en,size) in enumerate([
- ((-H*.20,mn.y-H*.28,target.z+H*.15),32,H*.17),
- (( H*.18,mn.y-H*.14,target.z+H*.01),12,H*.14),
- ((0,mx.y+H*.16,target.z+H*.14),20,H*.16)]):
-    ld=bpy.data.lights.new(f"L{i}","AREA"); ld.energy=en; ld.shape="DISK"; ld.size=size
-    lo=bpy.data.objects.new(f"L{i}",ld); sc.collection.objects.link(lo); lo.location=loc; look(lo,target)
-for view,loc in {"front":(0,mn.y-H*.48,target.z),"threequarter":(H*.20,mn.y-H*.40,target.z)}.items():
-    cam.location=loc; look(cam,target); sc.render.filepath=str(R/("pelvis_lap_firm2_"+view+".png")); bpy.ops.render.render(write_still=True)
-
-print("PELVIS_FIRM2 "+json.dumps({"weighted_vertices":count,"out":str(OUT)}),flush=True)
+D=Path("/data/models/8be67f4c0dd512a4132993698146a687");SRC=D/"v001.glb";R=D/"renders_v002";R.mkdir(exist_ok=True)
+bpy.ops.wm.read_factory_settings(use_empty=True);bpy.ops.import_scene.gltf(filepath=str(SRC))
+O=[o for o in bpy.context.scene.objects if o.type=="MESH"];B=max(O,key=lambda o:len(o.data.polygons))
+P=[o.matrix_world@Vector(c) for o in O for c in o.bound_box];mn=Vector((min(q.x for q in P),min(q.y for q in P),min(q.z for q in P)));mx=Vector((max(q.x for q in P),max(q.y for q in P),max(q.z for q in P)));H=mx.z-mn.z;cy=(mn.y+mx.y)/2
+orig=[v.co.copy() for v in B.data.vertices];inv=B.matrix_world.inverted();adj=[set() for _ in B.data.vertices]
+for e in B.data.edges:a,b=e.vertices;adj[a].add(b);adj[b].add(a)
+def W(i):return B.matrix_world@orig[i]
+def sd(q):return q.z-(.540+.684*abs(q.x))
+core=[v.index for v in B.data.vertices if (-.108<(q:=W(v.index)).x<-.006 and .532<q.z<.616 and q.y<cy and abs(sd(q))<.0065)]
+T={}
+for i in core:
+ q=W(i);seen={i};fr={i};cand=[]
+ for _ in range(3):
+  nx=set()
+  for u in fr:
+   for j in adj[u]:
+    if j not in seen:seen.add(j);nx.add(j);cand.append(j)
+  fr=nx
+ up=[];dn=[]
+ for j in cand:
+  p=W(j);d=sd(p)
+  if not(-.125<p.x<.005 and p.y<cy and abs(p.x-q.x)<.026):continue
+  if .010<d<.040:up.append((j,d))
+  elif -.040<d<-.010:dn.append((j,-d))
+ if not up or not dn:continue
+ def av(a):
+  a=sorted(a,key=lambda x:x[1])[:4];v=Vector((0,0,0));sw=0
+  for j,d in a:wt=1/max(d,.002);v+=W(j)*wt;sw+=wt
+  return v/sw
+ t=(av(up)+av(dn))*.5;t.x=q.x*.92+t.x*.08;T[i]=t
+# renderer
+S=bpy.context.scene;S.render.engine="CYCLES";S.cycles.device="CPU";S.cycles.samples=3;S.render.resolution_x=S.render.resolution_y=700;S.render.resolution_percentage=100;S.render.image_settings.file_format="PNG"
+if S.world is None:S.world=bpy.data.worlds.new("World")
+S.world.use_nodes=True;S.world.node_tree.nodes["Background"].inputs["Strength"].default_value=.06
+try:S.view_settings.look="AgX - Medium High Contrast"
+except:pass
+S.view_settings.exposure=-.6
+M=bpy.data.materials.new("C");M.use_nodes=True;bs=M.node_tree.nodes["Principled BSDF"];bs.inputs["Base Color"].default_value=(.28,.31,.36,1);bs.inputs["Roughness"].default_value=.78;S.view_layers["ViewLayer"].material_override=M
+cd=bpy.data.cameras.new("Cam");C=bpy.data.objects.new("Cam",cd);S.collection.objects.link(C);S.camera=C;cd.type="ORTHO";cd.ortho_scale=H*.29;tar=Vector((0,cy,mn.z+H*.57))
+def look(o):o.rotation_euler=(tar-o.location).to_track_quat("-Z","Y").to_euler()
+for k,(loc,en) in enumerate([((-H*.20,mn.y-H*.28,tar.z+H*.15),32),((H*.18,mn.y-H*.14,tar.z+H*.01),12),((0,mx.y+H*.16,tar.z+H*.14),20)]):
+ ld=bpy.data.lights.new(str(k),"AREA");ld.energy=en;ld.size=H*.16;lo=bpy.data.objects.new(str(k),ld);S.collection.objects.link(lo);lo.location=loc;look(lo)
+def rend(p):
+ for n,l in {"front":(0,mn.y-H*.48,tar.z),"threequarter":(H*.20,mn.y-H*.40,tar.z)}.items():C.location=l;look(C);S.render.filepath=str(R/(p+"_"+n+".png"));bpy.ops.render.render(write_still=True)
+rend("pelvis_bridge_before")
+res=[]
+for tag,a in [("mid",.55),("high",.85)]:
+ for v,c in zip(B.data.vertices,orig):v.co=c
+ for i,t in T.items():B.data.vertices[i].co=inv@(W(i).lerp(t,a))
+ B.data.update()
+ vg=B.vertex_groups.get("BL") or B.vertex_groups.new(name="BL");ring=set(T)
+ for i in list(T):ring.update(adj[i])
+ for i in ring:vg.add([i],1 if i in T else .3,"REPLACE")
+ m=B.modifiers.new("S","SMOOTH");m.vertex_group=vg.name;m.factor=.22;m.iterations=2;m.use_x=False;m.use_y=True;m.use_z=False;bpy.context.view_layer.objects.active=B;B.select_set(True);bpy.ops.object.modifier_apply(modifier=m.name)
+ for p in B.data.polygons:p.use_smooth=True
+ o=D/f"pelvis_bridge_left_{tag}.glb";bpy.ops.object.select_all(action="SELECT");bpy.ops.export_scene.gltf(filepath=str(o),export_format="GLB",export_apply=True);rend("pelvis_bridge_"+tag);res.append([tag,str(o)])
+print("PELVIS_BRIDGE_RESULT "+json.dumps({"core":len(core),"targets":len(T),"res":res}),flush=True)
